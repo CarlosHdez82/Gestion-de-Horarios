@@ -10,3 +10,4 @@ urllib3==2.6.3
 virtualenv==20.38.0
 fastapi
 uvicorn
+psycopg2
