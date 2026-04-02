@@ -11,9 +11,9 @@ class FacultiesController:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO faculties (name)
-                VALUES (%s)
-            """, (faculty.name,))
+                INSERT INTO faculties (name, is_active, created_at, updated_at)
+                VALUES (%s, %s, %s, %s)
+            """, (faculty.name, faculty.is_active, faculty.created_at, faculty.updated_at))
             conn.commit()
             return {"resultado": "Faculty created"}
         except psycopg2.Error as err:
@@ -32,7 +32,10 @@ class FacultiesController:
             if result:
                 content = {
                     'faculties_id': int(result[0]),
-                    'name': result[1]
+                    'name': result[1],
+                    'is_active': result[2],
+                    'created_at': str(result[3]),
+                    'updated_at': str(result[4])
                 }
                 return jsonable_encoder(content)
             else:
@@ -54,7 +57,10 @@ class FacultiesController:
             for data in result:
                 content = {
                     'faculties_id': data[0],
-                    'name': data[1]
+                    'name': data[1],
+                    'is_active': data[2],
+                    'created_at': str(data[3]),
+                    'updated_at': str(data[4])
                 }
                 payload.append(content)
             if result:
@@ -74,16 +80,19 @@ class FacultiesController:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE faculties
-                SET name = %s
+                SET name = %s, is_active = %s, created_at = %s, updated_at = %s
                 WHERE faculties_id = %s
-                RETURNING faculties_id, name;
-            """, (faculty.name, faculties_id))
+                RETURNING faculties_id, name, is_active, created_at, updated_at;
+            """, (faculty.name, faculty.is_active, faculty.created_at, faculty.updated_at, faculties_id))
             result = cursor.fetchone()
             conn.commit()
             if result:
                 content = {
                     'faculties_id': int(result[0]),
-                    'name': result[1]
+                    'name': result[1],
+                    'is_active': result[2],
+                    'created_at': str(result[3]),
+                    'updated_at': str(result[4])
                 }
                 return jsonable_encoder(content)
             else:
@@ -102,14 +111,17 @@ class FacultiesController:
             cursor.execute("""
                 DELETE FROM faculties
                 WHERE faculties_id = %s
-                RETURNING faculties_id, name;
+                RETURNING faculties_id, name, is_active, created_at, updated_at;
             """, (faculties_id,))
             result = cursor.fetchone()
             conn.commit()
             if result:
                 content = {
                     'faculties_id': int(result[0]),
-                    'name': result[1]
+                    'name': result[1],
+                    'is_active': result[2],
+                    'created_at': str(result[3]),
+                    'updated_at': str(result[4])
                 }
                 return jsonable_encoder(content)
             else:

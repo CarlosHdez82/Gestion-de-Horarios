@@ -7,3 +7,6 @@ class TeacherAvailability(BaseModel):
     day_of_week: str
     start_time: str
     end_time: str
+    is_active: bool = True
+    created_at: str = None
+    updated_at: str = None

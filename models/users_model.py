@@ -9,3 +9,4 @@ class Users(BaseModel):
     role_id: int = None
     is_active: bool = True
     created_at: str = None
+    updated_at: str = None

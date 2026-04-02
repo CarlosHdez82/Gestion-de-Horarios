@@ -12,3 +12,5 @@ class Teachers(BaseModel):
     level_id: int
     role_id: int
     is_active: bool
+    created_at: str = None
+    updated_at: str = None

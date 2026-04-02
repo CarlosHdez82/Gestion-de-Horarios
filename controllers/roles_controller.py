@@ -11,9 +11,9 @@ class RolesController:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO roles (name) 
-                VALUES (%s)
-            """, (role.name,))
+                INSERT INTO roles (name, is_active, created_at, updated_at) 
+                VALUES (%s, %s, %s, %s)
+            """, (role.name, role.is_active, role.created_at, role.updated_at))
             conn.commit()
             return {"resultado": "Rol creado"}
         except psycopg2.Error as err:
@@ -32,7 +32,10 @@ class RolesController:
             if result:
                 content = {
                     'role_id': int(result[0]),
-                    'name': result[1]
+                    'name': result[1],
+                    'is_active': result[2],
+                    'created_at': str(result[3]),
+                    'updated_at': str(result[4])
                 }
                 return jsonable_encoder(content)
             else:
@@ -54,7 +57,10 @@ class RolesController:
             for data in result:
                 content = {
                     'role_id': data[0],
-                    'name': data[1]
+                    'name': data[1],
+                    'is_active': data[2],
+                    'created_at': str(data[3]),
+                    'updated_at': str(data[4])
                 }
                 payload.append(content)
             if result:
@@ -74,16 +80,19 @@ class RolesController:
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE roles
-                SET name = %s
+                SET name = %s, is_active = %s, created_at = %s, updated_at = %s
                 WHERE role_id = %s
-                RETURNING role_id, name;
-            """, (role.name, role_id))
+                RETURNING role_id, name, is_active, created_at, updated_at;
+            """, (role.name, role.is_active, role.created_at, role.updated_at, role_id))
             result = cursor.fetchone()
             conn.commit()
             if result:
                 content = {
                     'role_id': int(result[0]),
-                    'name': result[1]
+                    'name': result[1],
+                    'is_active': result[2],
+                    'created_at': str(result[3]),
+                    'updated_at': str(result[4])
                 }
                 return jsonable_encoder(content)
             else:
@@ -102,14 +111,17 @@ class RolesController:
             cursor.execute("""
                 DELETE FROM roles
                 WHERE role_id = %s
-                RETURNING role_id, name;
+                RETURNING role_id, name, is_active, created_at, updated_at;
             """, (role_id,))
             result = cursor.fetchone()
             conn.commit()
             if result:
                 content = {
                     'role_id': int(result[0]),
-                    'name': result[1]
+                    'name': result[1],
+                    'is_active': result[2],
+                    'created_at': str(result[3]),
+                    'updated_at': str(result[4])
                 }
                 return jsonable_encoder(content)
             else:

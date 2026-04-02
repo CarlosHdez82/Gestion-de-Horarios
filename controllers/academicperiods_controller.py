@@ -11,9 +11,9 @@ class AcademicPeriodsController:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO academic_periods (name, start_date, end_date, is_active)
-                VALUES (%s, %s, %s, %s)
-            """, (period.name, period.start_date, period.end_date, period.is_active))
+                INSERT INTO academic_periods (name, start_date, end_date, is_active, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (period.name, period.start_date, period.end_date, period.is_active, period.created_at, period.updated_at))
             conn.commit()
             return {"resultado": "Academic period created"}
         except psycopg2.Error as err:
@@ -35,7 +35,9 @@ class AcademicPeriodsController:
                     'name': result[1],
                     'start_date': str(result[2]),
                     'end_date': str(result[3]),
-                    'is_active': result[4]
+                    'is_active': result[4],
+                    'created_at': str(result[5]),
+                    'updated_at': str(result[6])
                 }
                 return jsonable_encoder(content)
             else:
@@ -60,7 +62,9 @@ class AcademicPeriodsController:
                     'name': data[1],
                     'start_date': str(data[2]),
                     'end_date': str(data[3]),
-                    'is_active': data[4]
+                    'is_active': data[4],
+                    'created_at': str(data[5]),
+                    'updated_at': str(data[6])
                 }
                 payload.append(content)
             if result:
@@ -83,10 +87,12 @@ class AcademicPeriodsController:
                 SET name = %s,
                     start_date = %s,
                     end_date = %s,
-                    is_active = %s
+                    is_active = %s,
+                    created_at = %s,
+                    updated_at = %s
                 WHERE id = %s
-                RETURNING id, name, start_date, end_date, is_active;
-            """, (period.name, period.start_date, period.end_date, period.is_active, id))
+                RETURNING id, name, start_date, end_date, is_active, created_at, updated_at;
+            """, (period.name, period.start_date, period.end_date, period.is_active, period.created_at, period.updated_at, id))
             result = cursor.fetchone()
             conn.commit()
             if result:
@@ -95,7 +101,9 @@ class AcademicPeriodsController:
                     'name': result[1],
                     'start_date': str(result[2]),
                     'end_date': str(result[3]),
-                    'is_active': result[4]
+                    'is_active': result[4],
+                    'created_at': str(result[5]),
+                    'updated_at': str(result[6])
                 }
                 return jsonable_encoder(content)
             else:
@@ -114,7 +122,7 @@ class AcademicPeriodsController:
             cursor.execute("""
                 DELETE FROM academic_periods
                 WHERE id = %s
-                RETURNING id, name, start_date, end_date, is_active;
+                RETURNING id, name, start_date, end_date, is_active, created_at, updated_at;
             """, (id,))
             result = cursor.fetchone()
             conn.commit()
@@ -124,7 +132,9 @@ class AcademicPeriodsController:
                     'name': result[1],
                     'start_date': str(result[2]),
                     'end_date': str(result[3]),
-                    'is_active': result[4]
+                    'is_active': result[4],
+                    'created_at': str(result[5]),
+                    'updated_at': str(result[6])
                 }
                 return jsonable_encoder(content)
             else:

@@ -6,3 +6,6 @@ class TeacherDegrees(BaseModel):
     degree_type: str
     title: str
     institution: str
+    is_active: bool = True
+    created_at: str = None
+    updated_at: str = None
