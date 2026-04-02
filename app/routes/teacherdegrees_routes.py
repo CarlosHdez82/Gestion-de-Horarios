@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.teacherdegrees_model import TeacherDegrees
-from controllers.teacherdegrees_controller import TeacherDegreesController
+from app.models.teacherdegrees_model import TeacherDegrees
+from app.controllers.teacherdegrees_controller import TeacherDegreesController
 
 router = APIRouter()
 

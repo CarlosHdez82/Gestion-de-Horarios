@@ -1,7 +1,7 @@
 import psycopg2
 from fastapi import HTTPException
-from config.db_config import get_db_connection
-from models.teacheravailability_model import TeacherAvailability
+from app.config.db_config import get_db_connection
+from app.models.teacheravailability_model import TeacherAvailability
 from fastapi.encoders import jsonable_encoder
 
 class TeacherAvailabilityController:

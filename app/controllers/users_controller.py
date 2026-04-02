@@ -1,7 +1,7 @@
 import psycopg2
 from fastapi import HTTPException
-from config.db_config import get_db_connection
-from models.users_model import Users
+from app.config.db_config import get_db_connection
+from app.models.users_model import Users
 from fastapi.encoders import jsonable_encoder
 
 class UsersController:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.teacheravailability_model import TeacherAvailability
-from controllers.teacheravailability_controller import TeacherAvailabilityController
+from app.models.teacheravailability_model import TeacherAvailability
+from app.controllers.teacheravailability_controller import TeacherAvailabilityController
 
 router = APIRouter()
 controller = TeacherAvailabilityController()

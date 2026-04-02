@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.schedules_model import Schedules
-from controllers.schedules_controller import SchedulesController
+from app.models.schedules_model import Schedules
+from app.controllers.schedules_controller import SchedulesController
 
 router = APIRouter()
 controller = SchedulesController()

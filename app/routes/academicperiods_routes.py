@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.academicperiods_model import AcademicPeriods
-from controllers.academicperiods_controller import AcademicPeriodsController
+from app.models.academicperiods_model import AcademicPeriods
+from app.controllers.academicperiods_controller import AcademicPeriodsController
 
 router = APIRouter()
 

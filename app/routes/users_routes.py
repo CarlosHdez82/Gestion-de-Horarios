@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.users_model import Users
-from controllers.users_controller import UsersController
+from app.models.users_model import Users
+from app.controllers.users_controller import UsersController
 
 router = APIRouter()
 

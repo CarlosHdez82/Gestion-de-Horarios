@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.subjects_model import Subjects
-from controllers.subjects_controller import SubjectsController
+from app.models.subjects_model import Subjects
+from app.controllers.subjects_controller import SubjectsController
 
 router = APIRouter()
 

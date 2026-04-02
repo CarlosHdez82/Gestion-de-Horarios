@@ -1,7 +1,7 @@
 import psycopg2
 from fastapi import HTTPException
-from config.db_config import get_db_connection
-from models.specialties_model import Specialties
+from app.config.db_config import get_db_connection
+from app.models.specialties_model import Specialties
 from fastapi.encoders import jsonable_encoder
 
 class SpecialtiesController:

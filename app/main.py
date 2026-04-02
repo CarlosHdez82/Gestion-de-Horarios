@@ -1,17 +1,17 @@
 from fastapi import FastAPI
-from routes.roles_routes import router as roles_router
-from routes.users_routes import router as users_router
-from routes.faculties_routes import router as faculties_router
-from routes.programs_routes import router as programs_router
-from routes.teacherlevels_routes import router as teacherlevels_router
-from routes.teachers_routes import router as teachers_router
-from routes.teacherdegrees_routes import router as teacherdegrees_router
-from routes.specialties_routes import router as specialties_router
-from routes.teacherspecialties_routes import router as teacherspecialties_router
-from routes.subjects_routes import router as subjects_router
-from routes.academicperiods_routes import router as academicperiods_router
-from routes.teacheravailability_routes import router as teacheravailability_router
-from routes.schedules_routes import router as schedules_router
+from app.routes.roles_routes import router as roles_router
+from app.routes.users_routes import router as users_router
+from app.routes.faculties_routes import router as faculties_router
+from app.routes.programs_routes import router as programs_router
+from app.routes.teacherlevels_routes import router as teacherlevels_router
+from app.routes.teachers_routes import router as teachers_router
+from app.routes.teacherdegrees_routes import router as teacherdegrees_router
+from app.routes.specialties_routes import router as specialties_router
+from app.routes.teacherspecialties_routes import router as teacherspecialties_router
+from app.routes.subjects_routes import router as subjects_router
+from app.routes.academicperiods_routes import router as academicperiods_router
+from app.routes.teacheravailability_routes import router as teacheravailability_router
+from app.routes.schedules_routes import router as schedules_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()

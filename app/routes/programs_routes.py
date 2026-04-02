@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.programs_model import Programs
-from controllers.programs_controller import ProgramsController
+from app.models.programs_model import Programs
+from app.controllers.programs_controller import ProgramsController
 
 router = APIRouter()
 

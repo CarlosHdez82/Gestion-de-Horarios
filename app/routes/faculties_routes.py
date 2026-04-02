@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.faculties_model import Faculties
-from controllers.faculties_controller import FacultiesController
+from app.models.faculties_model import Faculties
+from app.controllers.faculties_controller import FacultiesController
 
 router = APIRouter()
 

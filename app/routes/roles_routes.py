@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from controllers.roles_controller import *
-from models.roles_model import Roles
+from app.controllers.roles_controller import *
+from app.models.roles_model import Roles
 
 router = APIRouter()
 

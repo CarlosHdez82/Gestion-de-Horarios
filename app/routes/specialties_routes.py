@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from models.specialties_model import Specialties
-from controllers.specialties_controller import SpecialtiesController
+from app.models.specialties_model import Specialties
+from app.controllers.specialties_controller import SpecialtiesController
 
 router = APIRouter()
 
