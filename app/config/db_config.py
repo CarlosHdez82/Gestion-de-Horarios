@@ -6,5 +6,6 @@ def get_db_connection():
         port="5432",
         user="postgres",
         password="chclmdlvg821130",
-        dbname="postgres"
+        dbname="postgres",
+        sslmode="require"  # <--- ESTA LÍNEA ES OBLIGATORIA PARA RENDER
     )
