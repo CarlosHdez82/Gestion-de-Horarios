@@ -1,10 +1,14 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class AcademicPeriods(BaseModel):
-    id: int = None
+    id: Optional[int] = None
     name: str
     start_date: str
     end_date: str
     is_active: bool = True
-    created_at: str = None
-    updated_at: str = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True

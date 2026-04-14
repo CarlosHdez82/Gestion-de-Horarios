@@ -27,7 +27,7 @@ class TeacherLevelsController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM teacher_levels WHERE teacherlevel_id = %s", (teacherlevel_id,))
+            cursor.execute("SELECT * FROM teacher_levels WHERE id = %s", (teacherlevel_id,))
             result = cursor.fetchone()
             if result:
                 content = {
@@ -50,6 +50,7 @@ class TeacherLevelsController:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM teacher_levels")
             result = cursor.fetchall()
+            
             payload = []
             for data in result:
                 content = {
@@ -57,13 +58,13 @@ class TeacherLevelsController:
                     'name': data[1]
                 }
                 payload.append(content)
-            if result:
-                return {"resultado": jsonable_encoder(payload)}
-            else:
-                raise HTTPException(status_code=404, detail="No teacher levels found")
+            
+            # Devolvemos la lista directamente para que Svelte la reciba como un Array
+            # Quitamos el error 404 para evitar que el fetch del frontend falle por completo
+            return jsonable_encoder(payload)
+
         except psycopg2.Error as err:
-            print(err)
-            conn.rollback()
+            print(f"Error en niveles CUL: {err}")
             raise HTTPException(status_code=500, detail="Database error")
         finally:
             conn.close()
@@ -75,8 +76,8 @@ class TeacherLevelsController:
             cursor.execute("""
                 UPDATE teacher_levels
                 SET name = %s
-                WHERE teacherlevel_id = %s
-                RETURNING teacherlevel_id, name;
+                WHERE id = %s
+                RETURNING id, name;
             """, (teacherlevel.name, teacherlevel_id))
             result = cursor.fetchone()
             conn.commit()
@@ -101,8 +102,8 @@ class TeacherLevelsController:
             cursor = conn.cursor()
             cursor.execute("""
                 DELETE FROM teacher_levels
-                WHERE teacherlevel_id = %s
-                RETURNING teacherlevel_id, name;
+                WHERE id = %s
+                RETURNING id, name;
             """, (teacherlevel_id,))
             result = cursor.fetchone()
             conn.commit()

@@ -27,7 +27,7 @@ class SpecialtiesController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM specialties WHERE specialty_id = %s", (specialty_id,))
+            cursor.execute("SELECT * FROM specialties WHERE id = %s", (specialty_id,))
             result = cursor.fetchone()
             if result:
                 content = {
@@ -75,8 +75,8 @@ class SpecialtiesController:
             cursor.execute("""
                 UPDATE specialties
                 SET name = %s
-                WHERE specialty_id = %s
-                RETURNING specialty_id, name;
+                WHERE id = %s
+                RETURNING id, name;
             """, (specialty.name, specialty_id))
             result = cursor.fetchone()
             conn.commit()
@@ -101,8 +101,8 @@ class SpecialtiesController:
             cursor = conn.cursor()
             cursor.execute("""
                 DELETE FROM specialties
-                WHERE specialty_id = %s
-                RETURNING specialty_id, name;
+                WHERE id = %s
+                RETURNING id, name;
             """, (specialty_id,))
             result = cursor.fetchone()
             conn.commit()

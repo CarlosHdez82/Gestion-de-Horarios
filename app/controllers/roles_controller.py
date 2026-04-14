@@ -27,7 +27,7 @@ class RolesController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM roles WHERE role_id = %s", (role_id,))
+            cursor.execute("SELECT * FROM roles WHERE id = %s", (role_id,))
             result = cursor.fetchone()
             if result:
                 content = {
@@ -53,6 +53,7 @@ class RolesController:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM roles")
             result = cursor.fetchall()
+            
             payload = []
             for data in result:
                 content = {
@@ -63,13 +64,16 @@ class RolesController:
                     'updated_at': str(data[4])
                 }
                 payload.append(content)
-            if result:
-                return {"resultado": jsonable_encoder(payload)}
-            else:
-                raise HTTPException(status_code=404, detail="Rol not found")
+            
+            # EL CAMBIO CLAVE:
+            # Si hay datos, devolvemos la lista 'payload' directamente.
+            # Si no hay datos, devolvemos una lista vacía [] en lugar de un error 404,
+            # para que el frontend no se rompa al intentar cargar la página.
+            return jsonable_encoder(payload)
+
         except psycopg2.Error as err:
-            print(err)
-            conn.rollback()
+            print(f"Error en base de datos: {err}")
+            # No es necesario hacer rollback en un SELECT, pero no estorba
             raise HTTPException(status_code=500, detail="Database error")
         finally:
             conn.close()
@@ -81,8 +85,8 @@ class RolesController:
             cursor.execute("""
                 UPDATE roles
                 SET name = %s, is_active = %s, created_at = %s, updated_at = %s
-                WHERE role_id = %s
-                RETURNING role_id, name, is_active, created_at, updated_at;
+                WHERE id = %s
+                RETURNING id, name, is_active, created_at, updated_at;
             """, (role.name, role.is_active, role.created_at, role.updated_at, role_id))
             result = cursor.fetchone()
             conn.commit()
@@ -110,8 +114,8 @@ class RolesController:
             cursor = conn.cursor()
             cursor.execute("""
                 DELETE FROM roles
-                WHERE role_id = %s
-                RETURNING role_id, name, is_active, created_at, updated_at;
+                WHERE id = %s
+                RETURNING id, name, is_active, created_at, updated_at;
             """, (role_id,))
             result = cursor.fetchone()
             conn.commit()

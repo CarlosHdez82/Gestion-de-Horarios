@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from app.models.academicperiods_model import AcademicPeriods
-from app.controllers.academicperiods_controller import AcademicPeriodsController
+from app.controllers.academicperiods_controller import PeriodsController
 
 router = APIRouter()
 
-academicperiods_controller = AcademicPeriodsController()
+academicperiods_controller = PeriodsController()
 
 @router.post("/create_period")
 async def create_period(period: AcademicPeriods):
@@ -14,7 +14,7 @@ async def create_period(period: AcademicPeriods):
 async def get_period(id: int):
     return academicperiods_controller.get_period(id)
 
-@router.get("/get_periods/")
+@router.get("/get_periods")
 async def get_periods():
     return academicperiods_controller.get_periods()
 

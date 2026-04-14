@@ -27,7 +27,7 @@ class TeacherDegreesController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM teacher_degrees WHERE teacherdegree_id = %s", (teacherdegree_id,))
+            cursor.execute("SELECT * FROM teacher_degrees WHERE id = %s", (teacherdegree_id,))
             result = cursor.fetchone()
             if result:
                 content = {
@@ -84,8 +84,8 @@ class TeacherDegreesController:
                     degree_type = %s,
                     title = %s,
                     institution = %s
-                WHERE teacherdegree_id = %s
-                RETURNING teacherdegree_id, teacher_id, degree_type, title, institution;
+                WHERE id = %s
+                RETURNING id, teacher_id, degree_type, title, institution;
             """, (teacherdegree.teacher_id, teacherdegree.degree_type, teacherdegree.title, teacherdegree.institution, teacherdegree_id))
             result = cursor.fetchone()
             conn.commit()
@@ -113,8 +113,8 @@ class TeacherDegreesController:
             cursor = conn.cursor()
             cursor.execute("""
                 DELETE FROM teacher_degrees
-                WHERE teacherdegree_id = %s
-                RETURNING teacherdegree_id, teacher_id, degree_type, title, institution;
+                WHERE id = %s
+                RETURNING id, teacher_id, degree_type, title, institution;
             """, (teacherdegree_id,))
             result = cursor.fetchone()
             conn.commit()

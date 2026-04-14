@@ -32,7 +32,22 @@ pip install "fastapi[standard]"
 
 
 
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 
+====================================
+1. Instrucciones para el Backend (FastAPI)
+Archivo: EJECUCION_BACKEND.txt
+Ubicación: /backend/
 
-fastapi dev main.py
+Abrir terminal: Situarse en la raíz de la carpeta del backend.
+
+Activar entorno virtual: * Windows: .venv\Scripts\activate
+
+Mac/Linux: source .venv/bin/activate
+
+Instalar dependencias (si es necesario): pip install -r requirements.txt
+
+Ejecutar servidor con recarga automática:
+uvicorn app.main:app --reload
+
+Verificar funcionamiento: Abrir el navegador en http://localhost:8000/docs para probar los endpoints con Swagger UI.

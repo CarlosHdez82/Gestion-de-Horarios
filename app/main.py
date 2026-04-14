@@ -12,12 +12,20 @@ from app.routes.subjects_routes import router as subjects_router
 from app.routes.academicperiods_routes import router as academicperiods_router
 from app.routes.teacheravailability_routes import router as teacheravailability_router
 from app.routes.schedules_routes import router as schedules_router
+from app.routes.stats_routes import router as stats_router
 from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
+@app.get("/")
+def root():
+    return {"message": "API funcionando correctamente"}
 origins = [
-    "http://localhost"
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5500", # Puerto común de Live Server
 ]
 
 app.add_middleware(
@@ -41,6 +49,7 @@ app.include_router(subjects_router)
 app.include_router(academicperiods_router)
 app.include_router(teacheravailability_router)
 app.include_router(schedules_router)
+app.include_router(stats_router)
 
 if __name__ == "__main__":
     import uvicorn
