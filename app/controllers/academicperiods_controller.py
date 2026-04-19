@@ -2,6 +2,7 @@ from fastapi.encoders import jsonable_encoder
 import psycopg2
 from fastapi import HTTPException
 from app.config.db_config import get_db_connection
+from app.models.academicperiods_model import AcademicPeriods
 
 class PeriodsController:
     # ... (get_periods, create y update ya los tienes)
