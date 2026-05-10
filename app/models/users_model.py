@@ -12,7 +12,7 @@ class UserBase(BaseModel):
     is_active: bool = True
 
 class UserCreate(UserBase):
-    password_hash: str # Solo se usa al recibir datos para crear/login
+    password: str # Solo se usa al recibir datos para crear/login
 
 class UserResponse(UserBase):
     id: int

@@ -23,7 +23,7 @@ class UsersController:
             hashed_password = hashlib.sha256(user.password.strip().encode()).hexdigest()
 
             cursor.execute("""
-                INSERT INTO users (first_name, last_name, email, password_hash, role_id, is_active)
+                INSERT INTO users (first_name, last_name, email, password, role_id, is_active)
                 VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
             """, (
                 user.first_name, user.last_name, user.email, 
