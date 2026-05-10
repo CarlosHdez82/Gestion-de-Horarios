@@ -2,28 +2,31 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-# 1. Cargamos las variables de entorno del archivo .env
+# 1. Cargamos las variables de entorno
 load_dotenv()
 
 def get_db_connection():
     """
-    Establece una conexión con la base de datos de Supabase 
-    utilizando las credenciales del archivo .env.
+    Establece una conexión con la base de datos de NEON.
+    Neon utiliza PostgreSQL estándar pero requiere SSL para todas las conexiones.
     """
     try:
-        # 2. Intentamos conectar usando os.getenv para cada parámetro
+        # 2. Usamos las variables de NEON
+        # Es común que Neon te dé un "Connection String" completo, 
+        # pero separarlo así es más organizado para tu código.
         conn = psycopg2.connect(
-            host=os.getenv("SUPABASE_HOST"),
-            port=os.getenv("SUPABASE_PORT"),
-            database=os.getenv("SUPABASE_DB"),
-            user=os.getenv("SUPABASE_USER"),
-            password=os.getenv("SUPABASE_PASSWORD"),
-            sslmode="require"  # Supabase requiere SSL por seguridad
+            host=os.getenv("NEON_HOST"),
+            port=os.getenv("NEON_PORT", 5432), # Por defecto es 5432
+            database=os.getenv("NEON_DB"),
+            user=os.getenv("NEON_USER"),
+            password=os.getenv("NEON_PASSWORD"),
+            sslmode="require"  # CRÍTICO: Neon no acepta conexiones sin SSL
         )
-        print("✅ Conexión exitosa a la base de datos en Supabase")
+        
+        # Opcional: Esto confirma que el endpoint de Neon está activo
+        # print("✅ Conectado exitosamente al endpoint de NEON")
         return conn
         
     except Exception as e:
-        # 3. Si algo falla (contraseña errónea, sin internet, etc.), atrapamos el error
-        print(f"❌ Error al intentar conectar: {e}")
+        print(f"❌ Error al conectar con NEON: {e}")
         return None

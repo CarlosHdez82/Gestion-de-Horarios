@@ -1,17 +1,20 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
-class Subjects(BaseModel):
-    id: Optional[int] = None
-    name: str
+class SubjectBase(BaseModel):
     code: str
+    name: str
     credits: int
     program_id: int
-    is_active: bool = True
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    # Este campo es vital para el GET con JOIN
-    program_name: Optional[str] = None
+
+class SubjectCreate(SubjectBase):
+    pass
+
+class SubjectResponse(SubjectBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

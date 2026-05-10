@@ -1,138 +1,105 @@
 import psycopg2
 from fastapi import HTTPException
 from app.config.db_config import get_db_connection
-from app.models.roles_model import Roles
+from app.models.roles_model import RoleCreate # Usamos el modelo estandarizado
 from fastapi.encoders import jsonable_encoder
 
 class RolesController:
         
-    def create_role(self, role: Roles):   
+    def create_role(self, role: RoleCreate):   
+        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
+            # Dejamos que la DB maneje las fechas
             cursor.execute("""
-                INSERT INTO roles (name, is_active, created_at, updated_at) 
-                VALUES (%s, %s, %s, %s)
-            """, (role.name, role.is_active, role.created_at, role.updated_at))
+                INSERT INTO roles (name) 
+                VALUES (%s) RETURNING id
+            """, (role.name,))
+            new_id = cursor.fetchone()[0]
             conn.commit()
-            return {"resultado": "Rol creado"}
+            return {"mensaje": "Rol creado exitosamente", "id": new_id}
         except psycopg2.Error as err:
-            print(err)
-            conn.rollback()
-            raise HTTPException(status_code=500, detail="Database error")
+            if conn: conn.rollback()
+            raise HTTPException(status_code=500, detail=f"Error al crear rol: {str(err)}")
         finally:
-            conn.close()
+            if conn: conn.close()
 
-    def get_role(self, role_id: int):
+    def get_role(self, id: int):
+        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM roles WHERE id = %s", (role_id,))
+            cursor.execute("SELECT id, name, created_at, updated_at FROM roles WHERE id = %s", (id,))
             result = cursor.fetchone()
             if result:
                 content = {
-                    'role_id': int(result[0]),
+                    'id': result[0],
                     'name': result[1],
-                    'is_active': result[2],
-                    'created_at': str(result[3]),
-                    'updated_at': str(result[4])
+                    'created_at': result[2],
+                    'updated_at': result[3]
                 }
                 return jsonable_encoder(content)
-            else:
-                raise HTTPException(status_code=404, detail="Rol not found")
-        except psycopg2.Error as err:
-            print(err)
-            conn.rollback()
-            raise HTTPException(status_code=500, detail="Database error")
+            raise HTTPException(status_code=404, detail="Rol no encontrado")
         finally:
-            conn.close()
+            if conn: conn.close()
        
     def get_roles(self):
+        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM roles")
+            cursor.execute("SELECT id, name, created_at, updated_at FROM roles ORDER BY id ASC")
             result = cursor.fetchall()
             
             payload = []
             for data in result:
-                content = {
-                    'role_id': data[0],
+                payload.append({
+                    'id': data[0],
                     'name': data[1],
-                    'is_active': data[2],
-                    'created_at': str(data[3]),
-                    'updated_at': str(data[4])
-                }
-                payload.append(content)
-            
-            # EL CAMBIO CLAVE:
-            # Si hay datos, devolvemos la lista 'payload' directamente.
-            # Si no hay datos, devolvemos una lista vacía [] en lugar de un error 404,
-            # para que el frontend no se rompa al intentar cargar la página.
-            return jsonable_encoder(payload)
-
-        except psycopg2.Error as err:
-            print(f"Error en base de datos: {err}")
-            # No es necesario hacer rollback en un SELECT, pero no estorba
-            raise HTTPException(status_code=500, detail="Database error")
+                    'created_at': data[2],
+                    'updated_at': data[3]
+                })
+            return payload # FastAPI se encarga de serializar la lista
         finally:
-            conn.close()
+            if conn: conn.close()
 
-    def update_role(self, role_id: int, role: Roles):
+    def update_role(self, id: int, role: RoleCreate):
+        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE roles
-                SET name = %s, is_active = %s, created_at = %s, updated_at = %s
+                SET name = %s, updated_at = NOW()
                 WHERE id = %s
-                RETURNING id, name, is_active, created_at, updated_at;
-            """, (role.name, role.is_active, role.created_at, role.updated_at, role_id))
+                RETURNING id, name;
+            """, (role.name, id))
             result = cursor.fetchone()
             conn.commit()
             if result:
-                content = {
-                    'role_id': int(result[0]),
-                    'name': result[1],
-                    'is_active': result[2],
-                    'created_at': str(result[3]),
-                    'updated_at': str(result[4])
-                }
-                return jsonable_encoder(content)
-            else:
-                raise HTTPException(status_code=404, detail="Rol not found")
-        except psycopg2.Error as err:
-            print(err)
-            conn.rollback()
-            raise HTTPException(status_code=500, detail="Database error")
+                return {"mensaje": "Rol actualizado", "id": result[0]}
+            raise HTTPException(status_code=404, detail="Rol no encontrado")
+        except psycopg2.Error:
+            if conn: conn.rollback()
+            raise HTTPException(status_code=500, detail="Error al actualizar el rol")
         finally:
-            conn.close()
+            if conn: conn.close()
 
-    def delete_role(self, role_id: int):
+    def delete_role(self, id: int):
+        conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("""
-                DELETE FROM roles
-                WHERE id = %s
-                RETURNING id, name, is_active, created_at, updated_at;
-            """, (role_id,))
+            cursor.execute("DELETE FROM roles WHERE id = %s RETURNING id", (id,))
             result = cursor.fetchone()
             conn.commit()
             if result:
-                content = {
-                    'role_id': int(result[0]),
-                    'name': result[1],
-                    'is_active': result[2],
-                    'created_at': str(result[3]),
-                    'updated_at': str(result[4])
-                }
-                return jsonable_encoder(content)
-            else:
-                raise HTTPException(status_code=404, detail="Rol not found")
-        except psycopg2.Error as err:
-            print(err)
-            conn.rollback()
-            raise HTTPException(status_code=500, detail="Database error")
+                return {"mensaje": "Rol eliminado correctamente"}
+            raise HTTPException(status_code=404, detail="Rol no encontrado")
+        except psycopg2.Error:
+            if conn: conn.rollback()
+            # Importante: No se puede borrar si hay usuarios con este rol
+            raise HTTPException(status_code=400, detail="No se puede eliminar: existen usuarios asociados a este rol")
         finally:
-            conn.close()
+            if conn: conn.close()

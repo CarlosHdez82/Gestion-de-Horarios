@@ -1,33 +1,33 @@
 from fastapi import APIRouter
 from typing import List
-from app.models.programs_model import Programs
+# Importamos los nombres EXACTOS que tienes en tu modelo
+from app.models.programs_model import ProgramCreate, ProgramResponse 
 from app.controllers.programs_controller import ProgramsController
 
-router = APIRouter()
+router = APIRouter(prefix="/programs", tags=["Programs"])
 programs_controller = ProgramsController()
 
-# Creamos el programa
-@router.post("/create_program")
-async def create_program(program: Programs):
+@router.post("/")
+async def create_program(program: ProgramCreate):
+    """Crea un nuevo programa académico"""
     return programs_controller.create_program(program)
 
-# Obtenemos un programa específico (Mantenemos response_model=Programs)
-@router.get("/get_program/{program_id}", response_model=Programs)
-async def get_program(program_id: int):
-    return programs_controller.get_program(program_id)
+@router.get("/{id}", response_model=ProgramResponse) # <-- Cambiado de Programs a ProgramResponse
+async def get_program(id: int):
+    """Obtiene los detalles de un programa por su ID"""
+    return programs_controller.get_program(id)
 
-# Obtenemos todos los programas (IMPORTANTE: Usar List[Programs])
-@router.get("/get_programs", response_model=List[Programs])
+@router.get("/", response_model=List[ProgramResponse]) # <-- Cambiado de Programs a ProgramResponse
 async def get_programs():
+    """Lista todos los programas registrados en la CUL"""
     return programs_controller.get_programs()
 
-# Actualizamos programa
-# Quitamos response_model=Programs porque el controlador devuelve un mensaje de éxito {"mensaje": "..."}, no el objeto completo.
-@router.put("/update_program/{program_id}")
-async def update_program(program_id: int, program: Programs):
-    return programs_controller.update_program(program_id, program)
+@router.put("/{id}")
+async def update_program(id: int, program: ProgramCreate):
+    """Actualiza la información de un programa existente"""
+    return programs_controller.update_program(id, program)
 
-# Eliminamos programa
-@router.delete("/delete_program/{program_id}")
-async def delete_program(program_id: int):
-    return programs_controller.delete_program(program_id)
+@router.delete("/{id}")
+async def delete_program(id: int):
+    """Elimina un programa"""
+    return programs_controller.delete_program(id)

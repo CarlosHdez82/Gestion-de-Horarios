@@ -1,27 +1,37 @@
 from fastapi import APIRouter
 from typing import List
-from app.models.teacheravailability_model import TeacherAvailability
+# Importamos los nombres exactos de tu modelo de disponibilidad
+from app.models.teacheravailability_model import TeacherAvailabilityCreate, TeacherAvailabilityResponse 
 from app.controllers.teacheravailability_controller import AvailabilityController
 
-router = APIRouter()
+# Prefijo estandarizado para la gestión de disponibilidad
+router = APIRouter(prefix="/availability", tags=["Teacher Availability"])
 controller = AvailabilityController()
 
-@router.get("/get_availabilities", response_model=List[TeacherAvailability])
+@router.get("/", response_model=List[TeacherAvailabilityResponse])
 async def get_availabilities():
+    """Obtiene la lista global de bloques de disponibilidad registrados"""
     return controller.get_availabilities()
 
-@router.get("/get_availability/{id}", response_model=TeacherAvailability)
-async def get_availability(id: int):
-    return controller.get_availability(id)
+@router.get("/teacher/{teacher_id}/{period_id}", response_model=List[TeacherAvailabilityResponse])
+async def get_availability_by_teacher(teacher_id: int, period_id: int):
+    """
+    Especial para el Grid de Svelte: 
+    Trae los bloques ya marcados para un docente en un periodo.
+    """
+    return controller.get_availability_by_teacher(teacher_id, period_id)
 
-@router.post("/create_availability")
-async def create_availability(data: TeacherAvailability):
+@router.post("/")
+async def create_availability(data: TeacherAvailabilityCreate):
+    """Registra un bloque de tiempo (día y hora) como disponible"""
     return controller.create_availability(data)
 
-@router.put("/update_availability/{id}")
-async def update_availability(id: int, data: TeacherAvailability):
-    return controller.update_availability(id, data)
-
-@router.delete("/delete_availability/{id}")
+@router.delete("/{id}")
 async def delete_availability(id: int):
+    """Elimina un bloque de disponibilidad específico"""
     return controller.delete_availability(id)
+
+@router.delete("/clear/{teacher_id}/{period_id}")
+async def clear_teacher_availability(teacher_id: int, period_id: int):
+    """Limpia todo el grid del docente para ese periodo"""
+    return controller.clear_teacher_availability(teacher_id, period_id)

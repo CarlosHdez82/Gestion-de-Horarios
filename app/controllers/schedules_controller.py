@@ -1,26 +1,29 @@
 import psycopg2
 from fastapi import HTTPException
 from app.config.db_config import get_db_connection
+from app.models.schedules_model import ScheduleCreate
 from fastapi.encoders import jsonable_encoder
 
 class SchedulesController:
 
-    def create_schedule(self, schedule):
+    def create_schedule(self, schedule: ScheduleCreate):
         conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
+            # Usamos block_label y group_code según el nuevo esquema
             cursor.execute("""
-                INSERT INTO schedules (teacher_id, subject_id, period_id, day_of_week, start_time, end_time)
+                INSERT INTO schedules (teacher_id, subject_id, period_id, day_of_week, block_label, group_code)
                 VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
             """, (schedule.teacher_id, schedule.subject_id, schedule.period_id, 
-                  schedule.day_of_week, schedule.start_time, schedule.end_time))
+                  schedule.day_of_week, schedule.block_label, schedule.group_code))
+            
             new_id = cursor.fetchone()[0]
             conn.commit()
-            return {"mensaje": "Horario creado exitosamente", "id": new_id}
+            return {"mensaje": "Carga académica asignada exitosamente", "id": new_id}
         except psycopg2.Error as err:
             if conn: conn.rollback()
-            raise HTTPException(status_code=500, detail=f"Error de base de datos: {err}")
+            raise HTTPException(status_code=500, detail=f"Error al asignar horario: {err}")
         finally:
             if conn: conn.close()
 
@@ -29,19 +32,20 @@ class SchedulesController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # Consulta con JOINs para traer nombres reales en lugar de solo IDs
+            # JOIN actualizado: t ahora es la tabla 'users'
             query = """
                 SELECT 
                     s.id, s.teacher_id, s.subject_id, s.period_id, s.day_of_week, 
-                    s.start_time, s.end_time, s.created_at, s.is_active, s.updated_at,
-                    (t.first_name || ' ' || t.last_name) AS teacher_name,
+                    s.block_label, s.group_code, s.created_at,
+                    (u.first_name || ' ' || u.last_name) AS teacher_name,
                     sub.name AS subject_name,
+                    sub.code AS subject_code,
                     ap.name AS period_name
                 FROM schedules s
-                LEFT JOIN teachers t ON s.teacher_id = t.id
+                LEFT JOIN users u ON s.teacher_id = u.id
                 LEFT JOIN subjects sub ON s.subject_id = sub.id
                 LEFT JOIN academic_periods ap ON s.period_id = ap.id
-                ORDER BY s.day_of_week, s.start_time ASC
+                ORDER BY ap.name DESC, s.day_of_week, s.block_label ASC
             """
             cursor.execute(query)
             result = cursor.fetchall()
@@ -54,21 +58,21 @@ class SchedulesController:
                     'subject_id': data[2],
                     'period_id': data[3],
                     'day_of_week': data[4],
-                    'start_time': str(data[5]),
-                    'end_time': str(data[6]),
-                    'created_at': str(data[7]),
-                    'is_active': data[8],
-                    'teacher_name': data[10],
-                    'subject_name': data[11],
-                    'period_name': data[12]
+                    'block_label': data[5],
+                    'group_code': data[6],
+                    'created_at': data[7],
+                    'teacher_name': data[8],
+                    'subject_name': data[9],
+                    'subject_code': data[10],
+                    'period_name': data[11]
                 })
             return payload
         except psycopg2.Error as err:
-            raise HTTPException(status_code=500, detail="Error al obtener horarios")
+            raise HTTPException(status_code=500, detail="Error al obtener la carga académica")
         finally:
             if conn: conn.close()
 
-    def update_schedule(self, id: int, schedule):
+    def update_schedule(self, id: int, schedule: ScheduleCreate):
         conn = None
         try:
             conn = get_db_connection()
@@ -76,14 +80,18 @@ class SchedulesController:
             cursor.execute("""
                 UPDATE schedules SET 
                     teacher_id=%s, subject_id=%s, period_id=%s, 
-                    day_of_week=%s, start_time=%s, end_time=%s, updated_at=NOW()
+                    day_of_week=%s, block_label=%s, group_code=%s, updated_at=NOW()
                 WHERE id=%s RETURNING id;
             """, (schedule.teacher_id, schedule.subject_id, schedule.period_id, 
-                  schedule.day_of_week, schedule.start_time, schedule.end_time, id))
+                  schedule.day_of_week, schedule.block_label, schedule.group_code, id))
+            
             if cursor.fetchone():
                 conn.commit()
-                return {"mensaje": "Horario actualizado"}
-            raise HTTPException(status_code=404, detail="Horario no encontrado")
+                return {"mensaje": "Horario actualizado correctamente"}
+            raise HTTPException(status_code=404, detail="Registro de horario no encontrado")
+        except psycopg2.Error as err:
+            if conn: conn.rollback()
+            raise HTTPException(status_code=500, detail="Error al actualizar el horario")
         finally:
             if conn: conn.close()
 
@@ -95,7 +103,7 @@ class SchedulesController:
             cursor.execute("DELETE FROM schedules WHERE id = %s RETURNING id", (id,))
             if cursor.fetchone():
                 conn.commit()
-                return {"mensaje": "Horario eliminado"}
-            raise HTTPException(status_code=404, detail="Horario no encontrado")
+                return {"mensaje": "Carga académica eliminada"}
+            raise HTTPException(status_code=404, detail="El registro no existe")
         finally:
             if conn: conn.close()

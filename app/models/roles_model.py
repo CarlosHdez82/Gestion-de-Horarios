@@ -1,8 +1,14 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class Roles(BaseModel):
-    role_id: int = None
+# Este es el que te faltaba
+class RoleCreate(BaseModel):
     name: str
-    is_active: bool = True
-    created_at: str = None
-    updated_at: str = None
+    description: Optional[str] = None
+
+# Este es el que usas para las respuestas (el que incluye ID)
+class Roles(RoleCreate):
+    id: int
+
+    class Config:
+        from_attributes = True

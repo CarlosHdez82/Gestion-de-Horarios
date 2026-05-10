@@ -1,16 +1,18 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
-class Programs(BaseModel):
-    program_id: Optional[int] = None
+class ProgramBase(BaseModel):
     name: str
     faculty_id: int
-    is_active: bool = True
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    
-    # Campo extra para mostrar el nombre de la facultad en la tabla
-    faculty_name: Optional[str] = None
+
+class ProgramCreate(ProgramBase):
+    pass
+
+class ProgramResponse(ProgramBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
