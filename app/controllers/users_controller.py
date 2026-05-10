@@ -20,20 +20,30 @@ class UsersController:
             cursor = conn.cursor()
             
             # Hashing SHA-256
-            hashed_password = hashlib.sha256(user.password.strip().encode()).hexdigest()
+            # Cambiado a user.password_hash para coincidir con tu clase UserCreate
+            hashed_password = hashlib.sha256(user.password_hash.strip().encode()).hexdigest()
 
+            # Se agrega 'program_id' al INSERT para que Neon no rechace la fila
             cursor.execute("""
-                INSERT INTO users (first_name, last_name, email, password, role_id, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
+                INSERT INTO users (first_name, last_name, email, password_hash, role_id, program_id, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id;
             """, (
-                user.first_name, user.last_name, user.email, 
-                hashed_password, user.role_id, user.is_active
+                user.first_name, 
+                user.last_name, 
+                user.email, 
+                hashed_password, 
+                user.role_id, 
+                user.program_id,
+                user.is_active
             ))
+            
             new_id = cursor.fetchone()[0]
             conn.commit()
             return {"mensaje": "Usuario creado con éxito", "id": new_id}
         except psycopg2.Error as err:
             if conn: conn.rollback()
+            # Imprimimos el error técnico en la terminal para que puedas debuguear mejor
+            print(f"Error detectado en Neon/Postgres: {err}")
             raise HTTPException(status_code=400, detail="El correo ya está registrado o los datos son inválidos")
         finally:
             if conn: conn.close()
@@ -43,7 +53,7 @@ class UsersController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # Traemos el nombre del rol con un JOIN para el frontend
+            # Traemos el nombre del rol con un JOIN para el frontend de Svelte
             cursor.execute("""
                 SELECT u.id, u.first_name, u.last_name, u.email, u.role_id, u.is_active, u.created_at, r.name as role_name
                 FROM users u
@@ -67,7 +77,6 @@ class UsersController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # JOIN con roles para no depender de un diccionario estático en Python
             cursor.execute("""
                 SELECT u.id, u.first_name, u.last_name, u.email, u.password_hash, u.role_id, u.is_active, r.name as role_name
                 FROM users u
@@ -81,7 +90,7 @@ class UsersController:
 
             db_id, db_fname, db_lname, db_email, db_hash, db_role_id, db_active, db_role_name = result
 
-            # Verificar Hash
+            # Verificar Hash (usando SHA-256 según tu configuración)
             input_hash = hashlib.sha256(password.strip().encode()).hexdigest()
             if input_hash != db_hash:
                 raise HTTPException(status_code=401, detail="Credenciales incorrectas")
@@ -112,7 +121,6 @@ class UsersController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # Verificación: no borrar si tiene horarios/disponibilidad (integridad referencial)
             cursor.execute("DELETE FROM users WHERE id = %s RETURNING id", (id,))
             if cursor.fetchone():
                 conn.commit()
