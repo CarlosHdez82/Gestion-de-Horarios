@@ -2,7 +2,6 @@ import psycopg2
 from fastapi import HTTPException
 from app.config.db_config import get_db_connection
 from app.models.users_model import UserCreate
-from fastapi.encoders import jsonable_encoder
 import hashlib
 import jwt 
 from datetime import datetime, timedelta, timezone
@@ -20,10 +19,9 @@ class UsersController:
             cursor = conn.cursor()
             
             # Hashing SHA-256
-            # Cambiado a user.password_hash para coincidir con tu clase UserCreate
             hashed_password = hashlib.sha256(user.password_hash.strip().encode()).hexdigest()
 
-            # Se agrega 'program_id' al INSERT para que Neon no rechace la fila
+            # Insertamos en la tabla users de Neon
             cursor.execute("""
                 INSERT INTO users (first_name, last_name, email, password_hash, role_id, program_id, is_active)
                 VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id;
@@ -42,33 +40,62 @@ class UsersController:
             return {"mensaje": "Usuario creado con éxito", "id": new_id}
         except psycopg2.Error as err:
             if conn: conn.rollback()
-            # Imprimimos el error técnico en la terminal para que puedas debuguear mejor
             print(f"Error detectado en Neon/Postgres: {err}")
             raise HTTPException(status_code=400, detail="El correo ya está registrado o los datos son inválidos")
         finally:
             if conn: conn.close()
 
-    def get_users(self):
+    def get_teachers(self):
+        """Especial para la vista de administración de docentes"""
         conn = None
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # Traemos el nombre del rol con un JOIN para el frontend de Svelte
+            # JOIN triple para traer info completa de ubicación
             cursor.execute("""
-                SELECT u.id, u.first_name, u.last_name, u.email, u.role_id, u.is_active, u.created_at, r.name as role_name
+                SELECT u.id, u.first_name, u.last_name, u.email, u.role_id, u.program_id, u.is_active,
+                       r.name as role_name, p.name as program_name, f.name as faculty_name, f.id as faculty_id
                 FROM users u
                 JOIN roles r ON u.role_id = r.id
-                ORDER BY u.id ASC
+                LEFT JOIN programs p ON u.program_id = p.id
+                LEFT JOIN faculties f ON p.faculty_id = f.id
+                WHERE r.name ILIKE 'teacher' OR r.name ILIKE 'Docente'
+                ORDER BY u.last_name ASC
             """)
             result = cursor.fetchall()
             payload = []
-            for data in result:
+            for d in result:
                 payload.append({
-                    'id': data[0], 'first_name': data[1], 'last_name': data[2],
-                    'email': data[3], 'role_id': data[4], 'is_active': data[5],
-                    'created_at': data[6], 'role_name': data[7]
+                    'id': d[0], 'first_name': d[1], 'last_name': d[2],
+                    'email': d[3], 'role_id': d[4], 'program_id': d[5],
+                    'is_active': d[6], 'role_name': d[7], 'program_name': d[8],
+                    'faculty_name': d[9], 'faculty_id': d[10]
                 })
             return payload
+        finally:
+            if conn: conn.close()
+
+    def update_user(self, id: int, user: UserCreate):
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            # No actualizamos el password_hash aquí por seguridad (usar otra ruta para eso)
+            cursor.execute("""
+                UPDATE users 
+                SET first_name = %s, last_name = %s, email = %s, 
+                    role_id = %s, program_id = %s, is_active = %s, updated_at = NOW()
+                WHERE id = %s RETURNING id;
+            """, (user.first_name, user.last_name, user.email, 
+                  user.role_id, user.program_id, user.is_active, id))
+            
+            if cursor.fetchone():
+                conn.commit()
+                return {"mensaje": "Usuario actualizado"}
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        except Exception as e:
+            if conn: conn.rollback()
+            raise HTTPException(status_code=400, detail=str(e))
         finally:
             if conn: conn.close()
 
@@ -78,7 +105,7 @@ class UsersController:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT u.id, u.first_name, u.last_name, u.email, u.password_hash, u.role_id, u.is_active, r.name as role_name
+                SELECT u.id, u.first_name, u.last_name, u.email, u.password_hash, r.name as role_name
                 FROM users u
                 JOIN roles r ON u.role_id = r.id
                 WHERE u.email = %s AND u.is_active = True
@@ -88,15 +115,13 @@ class UsersController:
             if not result:
                 raise HTTPException(status_code=401, detail="Credenciales incorrectas o usuario inactivo")
 
-            db_id, db_fname, db_lname, db_email, db_hash, db_role_id, db_active, db_role_name = result
+            db_id, db_fname, db_lname, db_email, db_hash, db_role_name = result
 
-            # Verificar Hash (usando SHA-256 según tu configuración)
             input_hash = hashlib.sha256(password.strip().encode()).hexdigest()
             if input_hash != db_hash:
                 raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
-            # Generar JWT
-            SECRET_KEY = os.getenv("JWT_SECRET", "tu_clave_secreta_por_defecto")
+            SECRET_KEY = os.getenv("JWT_SECRET", "cul_secret_key_2024")
             payload = {
                 "sub": str(db_id),
                 "email": db_email,
@@ -110,8 +135,7 @@ class UsersController:
                 "full_name": f"{db_fname} {db_lname}",
                 "email": db_email,
                 "role": db_role_name,
-                "token": token,
-                "message": "Bienvenido al sistema CUL"
+                "token": token
             }
         finally:
             if conn: conn.close()
@@ -128,6 +152,6 @@ class UsersController:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
         except psycopg2.Error:
             if conn: conn.rollback()
-            raise HTTPException(status_code=400, detail="No se puede eliminar: el usuario tiene registros asociados.")
+            raise HTTPException(status_code=400, detail="Error: El usuario tiene registros asociados (ej: disponibilidad o materias).")
         finally:
             if conn: conn.close()
