@@ -11,12 +11,15 @@ class TeacherAvailabilityBase(BaseModel):
 
 # --- 2. MODELO PARA CREACIÓN ---
 class TeacherAvailabilityCreate(TeacherAvailabilityBase):
-    # Usamos pass porque los datos del Grid coinciden con el Base
     pass
 
 # --- 3. MODELO PARA RESPUESTA ---
 class TeacherAvailabilityResponse(TeacherAvailabilityBase):
     id: int
+    # --- CAMPOS NUEVOS PARA QUE PASEN AL FRONTEND ---
+    teacher_name: Optional[str] = None
+    period_name: Optional[str] = None
+    # -----------------------------------------------
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
