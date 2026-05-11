@@ -15,7 +15,13 @@ async def login_user(credentials: LoginRequest):
     """Autenticación para obtener acceso al sistema de horarios"""
     return users_controller.login_user(credentials.email, credentials.password)
 
-# 2. OBTENER TODOS: Lista de usuarios sin mostrar contraseñas
+# 2. OBTENER DOCENTES: Solo usuarios con rol teacher
+@router.get("/teachers")
+async def get_teachers():
+    """Lista solo los usuarios con rol docente (para selectores y tablas)"""
+    return users_controller.get_teachers()
+
+# 3. OBTENER TODOS: Lista de usuarios sin mostrar contraseñas
 @router.get("/", response_model=List[UserResponse])
 async def get_users():
     """Lista todos los usuarios registrados en la plataforma"""
