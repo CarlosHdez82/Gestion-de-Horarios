@@ -15,6 +15,10 @@ class ScheduleCreate(ScheduleBase):
 
 class ScheduleResponse(ScheduleBase):
     id: int
+    teacher_name: Optional[str] = None
+    subject_name: Optional[str] = None
+    subject_code: Optional[str] = None
+    period_name: Optional[str] = None
     created_at: Optional[datetime] = None
 
     class Config:
