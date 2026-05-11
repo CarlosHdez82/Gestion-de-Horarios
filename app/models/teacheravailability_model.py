@@ -23,5 +23,12 @@ class TeacherAvailabilityResponse(TeacherAvailabilityBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
+# --- 4. MODELO ESPECIAL PARA EL GRID DEL DOCENTE ---
+# El endpoint /teacher/{id}/{period} devuelve {id, day, block}
+class AvailabilityGridItem(BaseModel):
+    id: int
+    day: str
+    block: str
+
     class Config:
         from_attributes = True

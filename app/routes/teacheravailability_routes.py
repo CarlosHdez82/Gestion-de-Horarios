@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from typing import List
 # Importamos los nombres exactos de tu modelo de disponibilidad
-from app.models.teacheravailability_model import TeacherAvailabilityCreate, TeacherAvailabilityResponse 
+from app.models.teacheravailability_model import TeacherAvailabilityCreate, TeacherAvailabilityResponse, AvailabilityGridItem
 from app.controllers.teacheravailability_controller import AvailabilityController
 
 # Prefijo estandarizado para la gestión de disponibilidad
@@ -13,7 +13,7 @@ async def get_availabilities():
     """Obtiene la lista global de bloques de disponibilidad registrados"""
     return controller.get_availabilities()
 
-@router.get("/teacher/{teacher_id}/{period_id}", response_model=List[TeacherAvailabilityResponse])
+@router.get("/teacher/{teacher_id}/{period_id}", response_model=List[AvailabilityGridItem])
 async def get_availability_by_teacher(teacher_id: int, period_id: int):
     """
     Especial para el Grid de Svelte: 
