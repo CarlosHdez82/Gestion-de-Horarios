@@ -20,6 +20,7 @@ class ScheduleResponse(ScheduleBase):
     subject_code: Optional[str] = None
     period_name: Optional[str] = None
     created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

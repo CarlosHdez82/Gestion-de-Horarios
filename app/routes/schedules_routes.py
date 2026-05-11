@@ -22,7 +22,7 @@ async def get_schedules():
     """
     return controller.get_schedules()
 
-@router.put("/{id}", response_model=ScheduleResponse)
+@router.put("/{id}")
 async def update_schedule(id: int, schedule: ScheduleCreate):
     """Actualiza un bloque de horario (cambio de docente, salón o materia)"""
     return controller.update_schedule(id, schedule)

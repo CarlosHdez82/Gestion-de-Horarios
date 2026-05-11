@@ -32,15 +32,14 @@ class SchedulesController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            # JOIN actualizado: t ahora es la tabla 'users'
             query = """
                 SELECT 
                     s.id, s.teacher_id, s.subject_id, s.period_id, s.day_of_week, 
-                    s.block_label, s.group_code, s.created_at,
-                    (u.first_name || ' ' || u.last_name) AS teacher_name,
-                    sub.name AS subject_name,
-                    sub.code AS subject_code,
-                    ap.name AS period_name
+                    s.block_label, COALESCE(s.group_code, 'A') as group_code, s.created_at,
+                    COALESCE(u.first_name || ' ' || u.last_name, 'Sin asignar') AS teacher_name,
+                    COALESCE(sub.name, 'Sin materia') AS subject_name,
+                    COALESCE(sub.code, '') AS subject_code,
+                    COALESCE(ap.name, 'Sin periodo') AS period_name
                 FROM schedules s
                 LEFT JOIN users u ON s.teacher_id = u.id
                 LEFT JOIN subjects sub ON s.subject_id = sub.id
@@ -67,8 +66,8 @@ class SchedulesController:
                     'period_name': data[11]
                 })
             return payload
-        except psycopg2.Error as err:
-            raise HTTPException(status_code=500, detail="Error al obtener la carga académica")
+        except Exception as err:
+            raise HTTPException(status_code=500, detail=f"Error al obtener horarios: {str(err)}")
         finally:
             if conn: conn.close()
 
