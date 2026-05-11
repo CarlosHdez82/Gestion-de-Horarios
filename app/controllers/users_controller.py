@@ -45,6 +45,54 @@ class UsersController:
         finally:
             if conn: conn.close()
 
+    def get_users(self):
+        """Lista todos los usuarios registrados"""
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT u.id, u.first_name, u.last_name, u.email,
+                       u.role_id, u.program_id, u.is_active,
+                       r.name as role_name
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                ORDER BY u.last_name ASC
+            """)
+            result = cursor.fetchall()
+            payload = []
+            for row in result:
+                payload.append({
+                    'id': row[0], 'first_name': row[1], 'last_name': row[2],
+                    'email': row[3], 'role_id': row[4], 'program_id': row[5],
+                    'is_active': row[6], 'role_name': row[7]
+                })
+            return payload
+        finally:
+            if conn: conn.close()
+
+    def get_user(self, id: int):
+        """Obtiene un usuario por ID"""
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT u.id, u.first_name, u.last_name, u.email,
+                       u.role_id, u.program_id, u.is_active
+                FROM users u WHERE u.id = %s
+            """, (id,))
+            row = cursor.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            return {
+                'id': row[0], 'first_name': row[1], 'last_name': row[2],
+                'email': row[3], 'role_id': row[4], 'program_id': row[5],
+                'is_active': row[6]
+            }
+        finally:
+            if conn: conn.close()
+
     def get_teachers(self):
         """Especial para la vista de administración de docentes"""
         conn = None
