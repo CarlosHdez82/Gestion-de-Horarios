@@ -26,6 +26,11 @@ async def create_availability(data: TeacherAvailabilityCreate):
     """Registra un bloque de tiempo (día y hora) como disponible"""
     return controller.create_availability(data)
 
+@router.put("/{id}")
+async def update_availability(id: int, data: TeacherAvailabilityCreate):
+    """Actualiza un bloque de disponibilidad existente"""
+    return controller.update_availability(id, data)
+
 @router.delete("/{id}")
 async def delete_availability(id: int):
     """Elimina un bloque de disponibilidad específico"""

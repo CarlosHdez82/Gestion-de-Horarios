@@ -77,6 +77,26 @@ class AvailabilityController:
         finally:
             if conn: conn.close()
 
+    def update_availability(self, id: int, data: TeacherAvailabilityCreate):
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE teacher_availability
+                SET teacher_id=%s, period_id=%s, day_of_week=%s, block_label=%s, updated_at=NOW()
+                WHERE id=%s RETURNING id
+            """, (data.teacher_id, data.period_id, data.day_of_week, data.block_label, id))
+            if cursor.fetchone():
+                conn.commit()
+                return {"mensaje": "Disponibilidad actualizada correctamente"}
+            raise HTTPException(status_code=404, detail="No se encontró el registro")
+        except psycopg2.Error as err:
+            if conn: conn.rollback()
+            raise HTTPException(status_code=409, detail="Conflicto al actualizar el bloque.")
+        finally:
+            if conn: conn.close()
+
     def delete_availability(self, id: int):
         conn = None
         try:
