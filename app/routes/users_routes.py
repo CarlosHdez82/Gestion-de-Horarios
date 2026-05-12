@@ -1,13 +1,17 @@
 from fastapi import APIRouter
-from app.models.users_model import UserCreate, UserResponse 
+from app.models.users_model import UserCreate, UserResponse
 from app.models.login_model import LoginRequest
 from app.controllers.users_controller import UsersController
+from pydantic import BaseModel
 from typing import List
 
-# Prefijo limpio y etiquetas para la documentación automática
 router = APIRouter(prefix="/users", tags=["Users & Authentication"])
-
 users_controller = UsersController()
+
+class ChangePasswordRequest(BaseModel):
+    user_id: int
+    current_password: str
+    new_password: str
 
 # 1. LOGIN: Recibe email y password, devuelve el Token JWT
 @router.post("/login")
@@ -45,7 +49,13 @@ async def update_user(id: int, user: UserCreate):
     """Actualiza la información de un usuario (incluyendo password si se envía)"""
     return users_controller.update_user(id, user)
 
-# 6. ELIMINAR: Borra el registro
+# 6. CAMBIAR CONTRASEÑA: Verifica la actual y guarda la nueva hasheada
+@router.put("/change-password")
+async def change_password(data: ChangePasswordRequest):
+    """Permite al usuario cambiar su propia contraseña"""
+    return users_controller.change_password(data.user_id, data.current_password, data.new_password)
+
+# 7. ELIMINAR: Borra el registro
 @router.delete("/{id}", response_model=UserResponse)
 async def delete_user(id: int):
     """Elimina definitivamente un usuario del sistema"""

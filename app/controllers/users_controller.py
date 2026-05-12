@@ -203,3 +203,28 @@ class UsersController:
             raise HTTPException(status_code=400, detail="Error: El usuario tiene registros asociados (ej: disponibilidad o materias).")
         finally:
             if conn: conn.close()
+    def change_password(self, id: int, current_password: str, new_password: str):
+        conn = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            # Verificar contraseña actual
+            current_hash = hashlib.sha256(current_password.strip().encode()).hexdigest()
+            cursor.execute("SELECT id FROM users WHERE id = %s AND password_hash = %s", (id, current_hash))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=400, detail="La contraseña actual es incorrecta")
+            # Guardar nueva contraseña hasheada
+            new_hash = hashlib.sha256(new_password.strip().encode()).hexdigest()
+            cursor.execute(
+                "UPDATE users SET password_hash = %s, updated_at = NOW() WHERE id = %s",
+                (new_hash, id)
+            )
+            conn.commit()
+            return {"mensaje": "Contraseña actualizada correctamente"}
+        except HTTPException:
+            raise
+        except Exception as e:
+            if conn: conn.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            if conn: conn.close()
