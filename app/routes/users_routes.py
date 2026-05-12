@@ -13,49 +13,49 @@ class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
 
-# 1. LOGIN: Recibe email y password, devuelve el Token JWT
+# 1. LOGIN
 @router.post("/login")
 async def login_user(credentials: LoginRequest):
     """Autenticación para obtener acceso al sistema de horarios"""
     return users_controller.login_user(credentials.email, credentials.password)
 
-# 2. OBTENER DOCENTES: Solo usuarios con rol teacher
-@router.get("/teachers")
-async def get_teachers():
-    """Lista solo los usuarios con rol docente (para selectores y tablas)"""
-    return users_controller.get_teachers()
-
-# 3. OBTENER TODOS: Lista de usuarios sin mostrar contraseñas
-@router.get("/", response_model=List[UserResponse])
-async def get_users():
-    """Lista todos los usuarios registrados en la plataforma"""
-    return users_controller.get_users()
-
-# 3. OBTENER UNO: Detalle de un usuario específico
-@router.get("/{id}", response_model=UserResponse)
-async def get_user(id: int):
-    """Busca un usuario por su ID"""
-    return users_controller.get_user(id)
-
-# 4. CREAR: Procesa el registro y hashea la clave en el controlador
-@router.post("/")
-async def create_user(user: UserCreate):
-    """Registra un nuevo usuario en la base de datos de la CUL"""
-    return users_controller.create_user(user)
-
-# 5. ACTUALIZAR: Modifica datos existentes
-@router.put("/{id}", response_model=UserResponse)
-async def update_user(id: int, user: UserCreate):
-    """Actualiza la información de un usuario (incluyendo password si se envía)"""
-    return users_controller.update_user(id, user)
-
-# 6. CAMBIAR CONTRASEÑA: Verifica la actual y guarda la nueva hasheada
+# 2. CAMBIAR CONTRASEÑA — debe ir ANTES de /{id} para que FastAPI no lo confunda
 @router.put("/change-password")
 async def change_password(data: ChangePasswordRequest):
     """Permite al usuario cambiar su propia contraseña"""
     return users_controller.change_password(data.user_id, data.current_password, data.new_password)
 
-# 7. ELIMINAR: Borra el registro
+# 3. OBTENER DOCENTES
+@router.get("/teachers")
+async def get_teachers():
+    """Lista solo los usuarios con rol docente"""
+    return users_controller.get_teachers()
+
+# 4. OBTENER TODOS
+@router.get("/", response_model=List[UserResponse])
+async def get_users():
+    """Lista todos los usuarios registrados en la plataforma"""
+    return users_controller.get_users()
+
+# 5. OBTENER UNO
+@router.get("/{id}", response_model=UserResponse)
+async def get_user(id: int):
+    """Busca un usuario por su ID"""
+    return users_controller.get_user(id)
+
+# 6. CREAR
+@router.post("/")
+async def create_user(user: UserCreate):
+    """Registra un nuevo usuario en la base de datos de la CUL"""
+    return users_controller.create_user(user)
+
+# 7. ACTUALIZAR
+@router.put("/{id}")
+async def update_user(id: int, user: UserCreate):
+    """Actualiza la información de un usuario"""
+    return users_controller.update_user(id, user)
+
+# 8. ELIMINAR
 @router.delete("/{id}", response_model=UserResponse)
 async def delete_user(id: int):
     """Elimina definitivamente un usuario del sistema"""
