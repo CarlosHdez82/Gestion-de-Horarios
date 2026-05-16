@@ -45,6 +45,7 @@ origins = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",    # React / Next.js
     "http://127.0.0.1:5500",    # Live Server (VS Code)
+    "https://ghdd.netlify.app",  # Agrega aquí otros orígenes permitidos (producción, staging, etc.)
 ]
 
 app.add_middleware(
