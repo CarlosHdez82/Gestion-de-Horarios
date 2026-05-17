@@ -152,7 +152,7 @@ class UsersController:
     # no tener programa asignado aún.
     # ------------------------------------------------------------
     def get_teachers(self):
-        """Especial para la vista de administración de docentes"""
+        """Especial para la vista de administración de docente"""
         conn = None
         try:
             conn = get_db_connection()
